@@ -1,0 +1,15 @@
+.nav-item
+{
+    color: black;
+    
+
+}
+.nav-item:hover
+{
+    font-weight: bolder;
+    color: #603fef;
+
+    
+    
+} 
+

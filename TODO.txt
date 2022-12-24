@@ -1,0 +1,48 @@
+Router in react <link to>
+usestate , useeffect , useref
+Bootstrap
+type:module
+useeffect is like didchangedependency
+Tags
+FETCH
+
+useeffect for API calls to express sever
+UseParams /:id
+Usereducer for state
+css style pass as key val pair object/map
+Context for the global data
+usecallback usememo for slow functions and reference equality useful when u using useffect with dependency
+Refs and DOM
+alert()
+
+
+Make barter system
+Find best fit
+Near me
+Category and price
+Can give or take the difference not necceriaily pure barter
+Can also things like baseball cards / recipies / used products 
+
+
+#TODO
+Product Form
+
+#VERY VERY IMP
+DATA IS ALWAYS CHANGED STATE MANAGMENT MEANS TO TELL REACT TO REPAINT WITH THE UPDATED DATA 
+IN THE FIRST CYCLE IT PAINTS WITH INITAL DATA
+SO NOW WHEN DATA CHANGES ITS OUR DUTY TO TELL TO REPAINT
+
+
+Express u have to tell it to move to next middleware 
+By DEFAULT it just sits in the first route it founds
+And u can send res just once rest u can do anything in use and move to next 
+
+
+{
+  "title":"NEW PROD",
+  "des":"ITS TOO GOOD",
+  "price":300,
+  "cat":"Novel",
+  "img":"/image",
+  "creator":"63a49c69c77f25cd8d9deed5"
+}

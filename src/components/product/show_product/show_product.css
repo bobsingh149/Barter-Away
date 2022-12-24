@@ -1,0 +1,45 @@
+html {
+  font-size: 16px;
+}
+
+.grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  row-gap: 1rem;
+  column-gap: 1rem;
+}
+
+.card {
+  position: relative;
+  width: 20vw;
+  cursor: pointer;
+  transition-property: top;
+  transition-timing-function: ease-in;
+  transition-duration: 0.5s;
+}
+
+.card:hover {
+  box-shadow: -3px 3px 6px rgba(0, 0, 0, 0.2);
+  top: -10px;
+}
+
+.card-img {
+  margin: 0px;
+  height: 10rem;
+}
+
+.footer-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.header-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+.title {
+  color: #603fef;
+}
