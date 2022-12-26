@@ -1,116 +1,128 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
-import { Alert, Spinner } from "react-bootstrap";
+import { Alert, Container, Spinner } from "react-bootstrap";
 import { Link, Redirect, useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../../context/auth_context";
+import { requestHeaders } from "../../../global_data";
+import { productApiRoute } from "../../../routes";
+import useHttp from "../../../shared/hooks/useHttp";
 import "./product_form.css";
 
 export default function ProductForm({ edit }) {
-  const { prodId } = useParams();
-
   const auth = useContext(AuthContext);
+
+  
+
+
+  const initState = {
+
+    title: '',
+    des: '',
+    price: 30,
+    loc: '',
+    cat: 'Electronic',
+    img: '',
+    creator: auth.uid,
+  };
+
+  const [loading, error, done, sendRequest] = useHttp();
+  const { prodId } = useParams();
 
   const prodsURL = "myprods";
 
-  const [title, setTitle] = useState("");
-  const [des, setDes] = useState("");
-  const [price, setPrice] = useState(0);
-  const [loc, setLoc] = useState("");
-  const [cat, setCat] = useState("");
-  const [file, setFile] = useState(null);
+  const [state, setState] = useState(initState);
 
-  const [isloading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("edit ", edit);
+    
+    if(!edit)
+      return;
 
-    if (edit) {
-      const prodList = JSON.parse(localStorage.getItem(prodsURL));
+    const getProd = async ()=>{
 
+      try{
+      const data = await sendRequest(`${productApiRoute}/${prodId}`,'GET',requestHeaders,null);
 
-      console.log('prodlist',prodList);
+      const loadedProd = data.product;
+      let prod={...initState};
 
-      console.log('prodID',prodId);
-      console.log(prodList[0].id);
+      for(let key in prod)
+        prod[key]=loadedProd[key];
+        
 
-      const prod = prodList.find(item => item.id == prodId);
+      setState(prod);
 
-      if(prod){
-      setTitle(prod.title);
-      setDes(prod.des);
-      setPrice(prod.price);
-      setLoc(prod.loc);
-      setCat(prod.cat);
-      setFile(prod.file);
+      
       }
-      else
-      {
-        console.log('Product not found');
-      }
-    }
+      catch(err){}
+    };
+    
+    
+    getProd();
+
+
 
   }, [edit]);
 
   function submit(e) {
     e.preventDefault();
 
-    setLoading(true);
-
     submitForm();
-
-    setTimeout(() => {
-      setLoading(false);
-      setDone(true);
-
-      setTimeout(() => {
-        setDone(false);
-
-        navigate("/showProd");
-      }, 1000);
-    }, 1000);
   }
 
-  function submitForm() {
+  async function submitForm() {
+    let newProdItem = { ...state };
+
+   
+    newProdItem.img = 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8OXx8bmF0dXJlfGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=600&q=60';
 
 
-    let prodList = JSON.parse(localStorage.getItem(prodsURL));
-
-    if (prodList == null) {
-      prodList = [];
-    }
-
-    let newProdItem = {
-      id: edit ? prodId : String(prodList.length),
-      title,
-      des,
-      price,
-      loc,
-      cat,
-      file,
-      creator: auth.username,
-    };
-
-    console.log(newProdItem);
+   
 
     if (edit) {
-      prodList = prodList.filter((item) => item.id !== prodId);
+
+        try
+        {
+         const res= await sendRequest(`${productApiRoute}/${prodId}`,'PATCH',requestHeaders,newProdItem);
+          console.log('$$$$$$$$$$$$$$$$$$$$',res);
+        }
+
+        catch(err){}
     }
+     else {
+      try {
+        await sendRequest(
+          `${productApiRoute}/add`,
+          "POST",
+          requestHeaders,
+          newProdItem
+        );
 
-    prodList.push(newProdItem);
+        setTimeout(() => {
+          navigate('/showMyProd');
+        }, 1000);
+     
 
-    localStorage.setItem(prodsURL, JSON.stringify(prodList));
+      } catch (err) {
+        console.log(err);
+      }
+    }
   }
 
   return (
+    
     <form className="form" onSubmit={submit}>
       <div className="form-group">
         <label className="text-white">Title</label>
         <input
           className="form-control"
-          value={title}
+          value={state.title}
           onChange={(e) => {
-            setTitle((prev) => e.target.value);
+            setState((prevState) => {
+              const curstate = { ...prevState };
+              curstate.title = e.target.value;
+              return curstate;
+            });
           }}
           type="text"
         />
@@ -119,9 +131,13 @@ export default function ProductForm({ edit }) {
         <input
           className="form-control"
           type="text"
-          value={des}
+          value={state.des}
           onChange={(e) => {
-            setDes((prev) => e.target.value);
+            setState((prevState) => {
+              const curstate = { ...prevState };
+              curstate.des = e.target.value;
+              return curstate;
+            });
           }}
         />
         <br />
@@ -129,9 +145,13 @@ export default function ProductForm({ edit }) {
         <input
           className="form-control"
           type="number"
-          value={price}
+          value={state.price}
           onChange={(e) => {
-            setPrice(e.target.value);
+            setState((prevState) => {
+              const curstate = { ...prevState };
+              curstate.price = e.target.value;
+              return curstate;
+            });
           }}
         />
         <br />
@@ -140,9 +160,13 @@ export default function ProductForm({ edit }) {
           className="form-control"
           name="Category"
           id="Category"
-          value={cat}
+          value={state.cat}
           onChange={(e) => {
-            setCat(e.target.value);
+            setState((prevState) => {
+              const curstate = { ...prevState };
+              curstate.cat = e.target.value;
+              return curstate;
+            });
           }}
         >
           <option className="dropdown-item" value="Electronic">
@@ -163,9 +187,13 @@ export default function ProductForm({ edit }) {
         <input
           className="form-control"
           type="text"
-          value={loc}
+          value={state.loc}
           onChange={(e) => {
-            setLoc(e.target.value);
+            setState((prevState) => {
+              const curstate = { ...prevState };
+              curstate.loc = e.target.value;
+              return curstate;
+            });
           }}
         />
         <br />
@@ -174,10 +202,14 @@ export default function ProductForm({ edit }) {
           className="gap-l"
           type="file"
           onChange={(e) => {
-            setFile(URL.createObjectURL(e.target.files[0]));
+            setState((prevState) => {
+              const curstate = { ...prevState };
+              curstate.img = URL.createObjectURL(e.target.files[0]);
+              return curstate;
+            });
           }}
         />
-        {file ? <img src={file} /> : <></>}
+        {state.img ? <img src={state.img} /> : <></>}
         <br /> <br />
         <section className="center">
           <button
@@ -189,15 +221,23 @@ export default function ProductForm({ edit }) {
             <span className="text-white">Submit</span>{" "}
           </button>
 
-          {isloading ? (
-            <Spinner className="mx-5 " animation="border" variant="danger" />
+          {loading ? (
+            <Spinner className="mx-5 " animation="border" variant="success" />
+          ) : (
+            <></>
+          )}
+
+          {error.length>0 ? (
+            <Alert className="mx-5 px-3 py-3" variant="danger">
+              {error}
+            </Alert>
           ) : (
             <></>
           )}
 
           {done ? (
             <Alert className="mx-5 px-3 py-3" variant="success">
-              Product added successfully
+             {edit ?'Product loaded successfully'  :'Product added successfully' }
             </Alert>
           ) : (
             <></>
@@ -205,5 +245,6 @@ export default function ProductForm({ edit }) {
         </section>
       </div>
     </form>
+    
   );
 }

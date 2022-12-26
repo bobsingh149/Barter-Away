@@ -2,7 +2,8 @@ import React, { useCallback, useState } from "react";
 
 export default function useHttp() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
 
   const sendRequest = useCallback(
     async (
@@ -18,31 +19,38 @@ export default function useHttp() {
         const res = await fetch(url, {
           method,
           headers,
-          body: JSON.stringify(body),
+          body: body? JSON.stringify(body) :null,
         });
 
         resData = await res.json();
 
         setLoading(false);
-        
-        if (!res.ok) {
-          throw new Error("Staus code is not ok");
-        }
-      } catch (err) {
 
-        setLoading(false);
-        setError(true);
-       
+        if (!res.ok) {
+          throw new Error(resData.message);
+        }
+
+        setDone(true);
 
         setTimeout(() => {
-          setError(false);
-        },1000);
-      }
+          setDone(false);
+        }, 1000);
 
-      return resData;
+        return resData;
+        
+      } catch (err) {
+        setLoading(false);
+        setError(err.message);
+
+        setTimeout(() => {
+          setError("");
+        }, 5000); //POWER OF ASYNCHRONOUS EVERYTHING CONTINUES IT RETURNS AND JS REMEMBESR OH I NEED TO EXECUTE THAT
+
+        throw new Error(err.message);
+      }
     },
     []
   );
 
-  return [loading, error, sendRequest];
+  return [loading, error, done, sendRequest];
 }

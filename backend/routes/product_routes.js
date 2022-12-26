@@ -86,7 +86,7 @@ productRouter.get('/equalquery', async(req,res,next)=>{
 });
 
 
-productRouter.get('/query', async(req,res,next)=>{
+productRouter.post('/query', async(req,res,next)=>{
 
   const filter = req.body;
 
@@ -114,23 +114,26 @@ productRouter.get('/query', async(req,res,next)=>{
 
 productRouter.get('/bestfit',async (req,res,next)=>{
 
-      const price = req.query.price;
+      let price = req.query.price;
       
       if(!price)
         price=req.body.price;
 
+      price = parseInt(price);
+
       let bestfitProd;
 
+      
 
         try
         {
-          const justGreater = await Product.find({price:{$gt:price}}).sort(1).limit(1);
+          let justGreater = await Product.find({price:{$gt:price}}).sort({price:1}).limit(1);
 
           if(justGreater)
           justGreater = justGreater[0];
          
 
-          const justLessEq = await Product.find({price:{$lte:price}}).sort(-1).limit(1);
+          let justLessEq = await Product.find({price:{$lte:price}}).sort({price:-1}).limit(1);
 
           if(justLessEq)
           justLessEq=justLessEq[0];
@@ -188,6 +191,8 @@ productRouter.patch("/:pid", async (req, res, next) => {
   let product;
 
   try {
+
+  
     product = await Product.findByIdAndUpdate(pid, prodInfo, { new: true });
 
     // if (!product) {

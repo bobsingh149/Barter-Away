@@ -26,15 +26,16 @@ function App() {
 
   const [isLogin, setIsLogin] = useState(info ?true :false);
   const [username, setUsername] = useState(info ?info.username :null);
-  const [uid,setUid] = useState(info? info.uid :null);
+  const [uid,setUid] = useState(info? info.id :null);
 
 
 
   const login = useCallback((userInfo) => {
 
-    console.log('Logging in');
+    console.log(`Logging in ${userInfo.id} ${userInfo.name}`);
     setIsLogin(true);
     setUsername(userInfo.username);
+    setUid(userInfo.id);
     localStorage.setItem(userDataCache,JSON.stringify(userInfo));
    
   },[]);
@@ -44,6 +45,7 @@ function App() {
     console.log('Logging out');
     setIsLogin(false);
     setUsername(null);
+    setUid(null);
     localStorage.removeItem(userDataCache);
 
   },[]);
@@ -55,10 +57,7 @@ function App() {
   {
       myRoutes= <Routes>
 
-      <Route path="/" exact element={<Auth />} />
-
-
-      <Route path="/auth" exact element={<Auth />} />
+      <Route path="/" exact element={<ShowProduct showAll={true} />}/>
 
 
       <Route path="/prodForm" exact element={<ProductForm edit={false} />} />
@@ -103,7 +102,7 @@ function App() {
 
   return (
 
-    <AuthContext.Provider value={{isLogin: isLogin, login: login, logout: logout, username: username }}>
+    <AuthContext.Provider value={{isLogin: isLogin, login: login, logout: logout, username: username,uid:uid }}>
      
        
         <Router>

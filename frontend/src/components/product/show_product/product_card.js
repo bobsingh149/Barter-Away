@@ -1,49 +1,57 @@
 import React, { Fragment } from "react";
+import { Alert, Container, Spinner } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import { useNavigate } from "react-router-dom";
-import { prodsURL } from "../../../global_data";
-import {editProdRoute} from "../../../routes";
+import { prodsURL, requestHeaders } from "../../../global_data";
+import { editProdRoute, productApiRoute } from "../../../routes";
+import useHttp from "../../../shared/hooks/useHttp";
 
 export default function ProductCard({
   id,
   title,
   des,
   cat,
-  file,
+  img,
   loc,
   price,
+  creator,
   showAll,
   setProds,
 }) {
+  const [loading, error, done, sendRequest] = useHttp();
 
-  const navigate=useNavigate();
+  const navigate = useNavigate();
 
   let short_des = des.length > 60 ? des.substring(0, 60) + "..." : des;
 
-  function deleteProd(e) {
+  async function deleteProd(e) {
     // window.location.reload();
+    try {
+    await sendRequest(
+      `${productApiRoute}/${id}`,
+      "DELETE",
+      requestHeaders,
+      null
+    );
 
-
-    setProds((prodList) => {
-      const newList= prodList.filter((prod) => {
-        return prod.id !== id;
+   
+      setProds((prodList) => {
+        const newList = prodList.filter((prod) => {
+          return prod.id !== id;
+        });
+        return newList;
       });
+    } 
+    
+    catch (err) {}
 
-      localStorage.removeItem(prodsURL);
 
-      localStorage.setItem(prodsURL,JSON.stringify(newList));
-
-      return newList;
-    });
+    
   }
 
-
-  function editForm(e)
-  {
-      navigate(`/editProdForm/${id}`);
-
-      
+  function editForm(e) {
+    navigate(`/editProdForm/${id}`);
   }
   function getUrl() {
     return `https://source.unsplash.com/random/100×100/?${loc}`;
@@ -53,7 +61,8 @@ export default function ProductCard({
     console.log(`click ${title}`);
   }
   return (
-    <Card className="card" onClick={openProduct}>
+    <>
+    <Card className="card mx-3" onClick={openProduct}>
       {!showAll && (
         <Card.Header className="text-muted">
           <header className="header-row">
@@ -67,7 +76,13 @@ export default function ProductCard({
       <Card.Body>
         <Card.Title>{title}</Card.Title>
         <Card.Subtitle className="text-muted">{`$ ${price}`}</Card.Subtitle>
+
+    
         <br />
+
+        {loading && <Spinner variant="danger"/>}
+        
+
         <Card.Text>{short_des}</Card.Text>
       </Card.Body>
 
@@ -83,7 +98,9 @@ export default function ProductCard({
       {!showAll && (
         <Card.Footer>
           <footer className="row">
-            <Button className="btn-info col mx-1" onClick={editForm}>EDIT</Button>
+            <Button className="btn-info col mx-1" onClick={editForm}>
+              EDIT
+            </Button>
 
             <Button className="btn-danger col mx-1" onClick={deleteProd}>
               DELETE
@@ -92,5 +109,7 @@ export default function ProductCard({
         </Card.Footer>
       )}
     </Card>
+    {error.length>0 && <Alert variant="danger">{error}</Alert>}
+    </>
   );
 }

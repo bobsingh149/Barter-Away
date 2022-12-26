@@ -8,7 +8,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Alert, Button, InputGroup } from "react-bootstrap";
+import { Alert, Button, Container, InputGroup, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/auth_context";
 
@@ -68,73 +68,65 @@ export default function Auth() {
   const navigate = useNavigate();
   const auth = useContext(AuthContext);
 
-  const [loading,error,sendRequest] = useHttp();
+  const [loading,error,done,sendRequest] = useHttp();
 
   const [state, dispatch] = useReducer(reducer, initState);
 
-  const [Invalid, setInvalid] = useState(false);
 
   const userRef = useRef(null);
+
 
   async function onsubmitHandler(e) {
     e.preventDefault();
 
-    let users = JSON.parse(localStorage.getItem(authApiLink));
+   
 
-    if (users == null) {
-      users = [];
-    }
+    let curUserInfo = { username: state.username, password: state.password , name:state.name};
 
-    const curUserInfo = { username: state.username, password: state.password , name:state.name};
-
-    console.log(users);
-
+  
     if (state.islogin) {
-      for (const user of users) {
-        if (
-          user.username === curUserInfo.username &&
-          user.password === curUserInfo.password
-        ) {
-          auth.login(curUserInfo);
+      
+      try{
+    curUserInfo = await sendRequest(`${userApiRoute}/login`,'POST',requestHeaders,curUserInfo);
+    
 
-          console.log("Logged in");
+    auth.login(curUserInfo.user);
 
-          navigate("/showProd");
+    navigate("/showProd");
 
-          return;
-        }
       }
 
-      setInvalid(true);
+      catch(err)
+      {
+      
+        console.error(err);
 
-      setTimeout(() => {
-        setInvalid(false);
-        dispatch({ type: actionType.reset });
-      }, 1000);
+        dispatch({type:actionType.reset});
+      }
 
-      console.log("Invalid credentials");
+    
+
+
     } else {
       
 
       try{
-      const resData = await sendRequest(`${userApiRoute}/register`,'POST',requestHeaders,curUserInfo);
 
-      console.log(resData);
+      curUserInfo = await sendRequest(`${userApiRoute}/register`,'POST',requestHeaders,curUserInfo);
+
+     
 
 
-      users.push(curUserInfo);
+      auth.login(curUserInfo.user);
 
-      localStorage.setItem(authApiLink, JSON.stringify(users));
-
-      auth.login(curUserInfo);
-
-      console.log("Registed");
-      navigate("/showProd");
+        navigate("/showProd");
       }
 
       catch(err){
-    
+       
         console.error(err);
+
+        dispatch({type:actionType.reset});
       }
     }
   }
@@ -146,6 +138,7 @@ export default function Auth() {
   //     },[username]);
 
   return (
+   
     <form className="auth-form" onSubmit={onsubmitHandler}>
       <h3> {state.islogin ? "Welcome back" : "Regsiter"} </h3>
       <hr />
@@ -169,9 +162,6 @@ export default function Auth() {
 
       <input
         ref={userRef}
-        onClick={(e) => {
-          console.log("I am clicked");
-        }}
         value={state.username}
         onChange={(e) => {
           dispatch({
@@ -200,6 +190,11 @@ export default function Auth() {
       />
 
       <br />
+
+          {loading &&
+        <Spinner></Spinner>
+          }
+
       <br />
 
       <div className="row">
@@ -232,9 +227,9 @@ export default function Auth() {
         , insted
       </a>
 
-      {Invalid && (
+      {error.length>0 && (
         <Alert className="mx-5 my-3 px-3 py-3" variant="danger">
-          Inavlid Credentials
+          {error}
         </Alert>
       )}
 
@@ -248,5 +243,7 @@ export default function Auth() {
         Focus{" "}
       </Button>
     </form>
+    
+    
   );
 }
